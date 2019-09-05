@@ -22,30 +22,56 @@ CRITICAL
 A serious error, indicating that the program itself may be unable to continue running.
 """
 
+import os
 import logging
 
-logger = logging.getLogger(__name__)
-# no handler could handle a level higher than the own logger level
-# this should be high af
-logger.setLevel(logging.DEBUG)
+def setup():
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.WARNING)
+	formatter = _configure_formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-file_handler = logging.FileHandler('test.log')
-file_handler.setLevel(logging.INFO)
+	console_handler = _configure_console_handler(logging.WARNING, formatter)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+	location = os.path.join(os.path.dirname(__file__), 'logs', '%s.log' % __name__)
 
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
+	file_handler = _configure_file_handler(logging.INFO, formatter, location)
 
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+	logger = _configure_logger(logging.DEBUG, [console_handler, file_handler])
 
-if __name__ == '__main__':
-	logger.debug('This message should not be displayed unless a handler was created')
-	logger.warning('Some shit is about to happen...')
-	logger.error('Some shit happened.')
-	logger.critical('Some SERIOUS shit happened, dude!')
-	logger.info('Some chill stuff is happening as expected...')
+	return logger
+
+def _configure_logger(default_level, handlers):
+
+	logger = logging.getLogger(__name__)
+	logger.setLevel(default_level)
+
+	for handler in handlers:
+		logger.addHandler(handler)
+
+	return logger
+
+def _configure_formatter(message_format):
+	return logging.Formatter(message_format)
+
+def _configure_console_handler(level, formatter):
+
+	handler = logging.StreamHandler()
+	handler.setLevel(level)
+
+	handler.setFormatter(formatter)
+
+	return handler
+
+def _configure_file_handler(level, formatter, location):
+
+	if not _location_is_valid(location):
+		raise
+	
+	handler = logging.FileHandler(location)
+	handler.setLevel(level)
+
+	handler.setFormatter(formatter)
+
+	return handler
+
+def _location_is_valid(location):
+	return True
