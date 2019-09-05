@@ -25,53 +25,60 @@ A serious error, indicating that the program itself may be unable to continue ru
 import os
 import logging
 
-def setup():
+def setup(log_name, log_to_console=True, log_to_file=False, dirname=None):
 
-	formatter = _configure_formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handlers = []
 
-	console_handler = _configure_console_handler(logging.WARNING, formatter)
+    formatter = _configure_formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-	location = os.path.join(os.path.dirname(__file__), 'logs', '%s.log' % __name__)
+    if log_to_console:
+        console_handler = _configure_console_handler(logging.WARNING, formatter)
+        handlers.append(console_handler)
 
-	file_handler = _configure_file_handler(logging.INFO, formatter, location)
+    if log_to_file:
+        if not dirname:
+            raise Exception('if log_to_file is True, a dirname should be passed as well')
+        file_handler = _configure_file_handler(logging.INFO, formatter, 
+                            os.path.join(dirname, '%s.log' % log_name))
+        handlers.append(file_handler)
 
-	logger = _configure_logger(logging.DEBUG, [console_handler, file_handler])
+    logger = _configure_logger(log_name, logging.DEBUG, handlers)
 
-	return logger
+    return logger
 
-def _configure_logger(default_level, handlers):
+def _configure_logger(log_name, default_level, handlers):
 
-	logger = logging.getLogger(__name__)
-	logger.setLevel(default_level)
+    logger = logging.getLogger(log_name)
+    logger.setLevel(default_level)
 
-	for handler in handlers:
-		logger.addHandler(handler)
+    for handler in handlers:
+        logger.addHandler(handler)
 
-	return logger
+    return logger
 
 def _configure_formatter(message_format):
-	return logging.Formatter(message_format)
+    return logging.Formatter(message_format)
 
 def _configure_console_handler(level, formatter):
 
-	handler = logging.StreamHandler()
-	handler.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
 
-	handler.setFormatter(formatter)
+    handler.setFormatter(formatter)
 
-	return handler
+    return handler
 
 def _configure_file_handler(level, formatter, location):
 
-	if not _location_is_valid(location):
-		raise
-	
-	handler = logging.FileHandler(location)
-	handler.setLevel(level)
+    if not _location_is_valid(location):
+        raise
 
-	handler.setFormatter(formatter)
+    handler = logging.FileHandler(location)
+    handler.setLevel(level)
 
-	return handler
+    handler.setFormatter(formatter)
+
+    return handler
 
 def _location_is_valid(location):
-	return True
+    return True
