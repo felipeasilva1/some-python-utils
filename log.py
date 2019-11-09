@@ -1,29 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-"""
-LOG LEVELS
-==========
-
-DEBUG
-Detailed information, typically of interest only when diagnosing problems.
-
-INFO
-Confirmation that things are working as expected.
-
-WARNING
-An indication that something unexpected happened, or indicative of some problem 
-in the near future (e.g. ‘disk space low’). The software is still working as expected.
-
-ERROR
-Due to a more serious problem, the software has not been able to perform some function.
-
-CRITICAL
-A serious error, indicating that the program itself may be unable to continue running.
-"""
 
 import os
 import logging
+
 
 def setup(log_name, log_to_console=True, log_to_file=False, dirname=None):
     handlers = []
@@ -39,17 +17,18 @@ def setup(log_name, log_to_console=True, log_to_file=False, dirname=None):
             raise AttributeError('if log_to_file is True, a dirname should be passed as well')
         try:
             file_handler = _configure_file_handler(logging.INFO, formatter,
-                                os.path.join(dirname, '%s.log' % log_name))
+                                                   os.path.join(dirname, '%s.log' % log_name))
             handlers.append(file_handler)
         except IOError:
             raise  # re-raise _is_valid_location's exception
-            
+
     else:
         raise AttributeError('At least one handler must been choose.')
 
     logger = _configure_logger(log_name, logging.DEBUG, handlers)
 
     return logger
+
 
 def _configure_logger(log_name, default_level, handlers):
     logger = logging.getLogger(log_name)
@@ -60,8 +39,10 @@ def _configure_logger(log_name, default_level, handlers):
 
     return logger
 
+
 def _configure_formatter(message_format):
     return logging.Formatter(message_format)
+
 
 def _configure_console_handler(level, formatter):
     handler = logging.StreamHandler()
@@ -70,6 +51,7 @@ def _configure_console_handler(level, formatter):
     handler.setFormatter(formatter)
 
     return handler
+
 
 def _configure_file_handler(level, formatter, location):
     if not _location_is_valid(location):
@@ -81,6 +63,7 @@ def _configure_file_handler(level, formatter, location):
     handler.setFormatter(formatter)
 
     return handler
+
 
 def _location_is_valid(location):
     if not os.path.exists(location) or not os.path.isdir(location):
